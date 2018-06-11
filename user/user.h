@@ -1,20 +1,25 @@
 //
-// Created by Donato Wolfisberg on 20.11.2017.
+// Created by Donato Wolfisberg on 13.12.2017.
 //
 
-#ifndef OWENATOR_USER_H
-#define OWENATOR_USER_H
+#ifndef OWENATORV2_USER_H
+#define OWENATORV2_USER_H
 
-#include <string>
-#include "userNode.h"
+#include "../list/list.h"
+#include "../person/personStruct.h"
+#include "userStruct.h"
 
 using namespace std;
 
 
+List<User> *getUserList();
 
-User* addUser(string username, string password);
+void setUserList(List<User> *userList);
 
-void deleteUser(long int id);
-User* getUser(long int id);
-bool getNextUser(User** user, bool backwards = false);
-#endif //OWENATOR_USER_H
+User *addUser(string username, string password);
+
+User *getUserWith(string username, string password);
+
+bool doesUsernameExist(string username);
+
+#endif //OWENATORV2_USER_H

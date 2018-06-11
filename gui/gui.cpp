@@ -1,170 +1,119 @@
+//
+// Created by Donato Wolfisberg on 12.12.2017.
+//
+
 #include <windows.h>
-#include <stdio.h>
-#include <string>
 #include <iostream>
-
 #include "gui.h"
-#include "button.h"
+#include "cursor/cursor.h"
+#include "render/render.h"
+#include "handler/clickHandler/clickHandler.h"
+#include "handler/keyHandler/keyHandler.h"
 
-using namespace std;
 
-Button* buttons;
-
-void moveCursor(short x, short y) {
-	COORD pos = { x, y };
-	HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleCursorPosition(output, pos);
-}
-
-void addButton(Button newButtons[]) {
-	int sizeofbuttons = sizeof(newButtons);
-	int sizeofbutton = sizeof(newButtons[0]);
-
-	for (unsigned int i = 0; i <  sizeofbuttons / sizeofbutton; i++) {
-		setText(newButtons[i].x, newButtons[i].y, newButtons[i].text);
-	}
-	buttons = newButtons;
-}
-
-void setText(short x, short y, string text) {
-	moveCursor(x, y);
-	cout << text;
-}
-
-/*
-HANDLE hStdin;
-DWORD fdwSaveOldMode;
-
-VOID MouseEventProc(MOUSE_EVENT_RECORD);
-VOID ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD);
-
-DWORD fdwMode;
-
-void clearConsole() {
-	SetConsoleMode(hStdin, fdwSaveOldMode);
+Button *showGui() {
 	system("cls");
-	hStdin = GetStdHandle(STD_INPUT_HANDLE);
-	if (hStdin == INVALID_HANDLE_VALUE)
-		std::cout << "GetStdHandle";
 
-	// Save the current input mode, to be restored on exit.
+	InitialiseLabels();
+	initialiseInputs();
+	initialiseButtons();
 
-	if (!GetConsoleMode(hStdin, &fdwSaveOldMode))
-		std::cout << "GetConsoleMode";
+	renderLabels();
+	renderButtons();
+	renderInputs();
+
+	focusActiveInput();
 
 
-	// Enable the window and mouse input events.
+	bool stopLoop = false;
+	Button *returnButton = nullptr;
+	DWORD oldConsoleMode, newConsoleMode, numberOfReadInputEvents;
 
-	fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
-	if (!SetConsoleMode(hStdin, fdwMode))
-		std::cout << "SetConsoleMode";
-}
+	HANDLE stdInputHandle;
+	INPUT_RECORD InputEventsBuffer[128];
 
-int main()
-{
 
-	DWORD cNumRead, i;
-	INPUT_RECORD irInBuf[128];
 
 	// Get the standard input handle.
-	hStdin = GetStdHandle(STD_INPUT_HANDLE);
-	if (hStdin == INVALID_HANDLE_VALUE)
-		std::cout << "GetStdHandle";
+	stdInputHandle = GetStdHandle(STD_INPUT_HANDLE);
+	if (stdInputHandle == INVALID_HANDLE_VALUE)
+		std::cout << "Failed to get the standart Input handle";
 
 	// Save the current input mode, to be restored on exit.
-	if (!GetConsoleMode(hStdin, &fdwSaveOldMode))
-		std::cout << "GetConsoleMode";
+	if (!GetConsoleMode(stdInputHandle, &oldConsoleMode))
+		std::cout << "Failed to save Console Mode";
 
 
-	// Enable the window and mouse input events.
-	fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
-	if (!SetConsoleMode(hStdin, fdwMode))
-		std::cout << "SetConsoleMode";
+	// Enable the window and mouse input events. and disable einfügemodus und quickedit modus
+	newConsoleMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;
+	if (!SetConsoleMode(stdInputHandle, newConsoleMode))
+		std::cout << "Failed to enable keyboard and Mouse Event";
 
 
 	// Loop to read and handle the next 100 input events.
-	while (1)
-	{
+	while (true) {
 		// Wait for the events.
 
 		if (!ReadConsoleInput(
-			hStdin,      // input buffer handle
-			irInBuf,     // buffer to read into
-			128,         // size of read buffer
-			&cNumRead)) // number of records read
+				stdInputHandle,      // input buffer handle
+				InputEventsBuffer,     // buffer to read into
+				128,         // size of read buffer
+				&numberOfReadInputEvents)) // number of records read
 			std::cout << "ReadConsoleInput";
 
 
 		// Dispatch the events to the appropriate handler.
+		for (short i = 0; i < numberOfReadInputEvents; i++) {
+			switch (InputEventsBuffer[i].EventType) {
+				case KEY_EVENT: // keyboard input
+					// beim runter drücken das nicht zweimal geschrieben wird
 
-		for (i = 0; i < cNumRead; i++)
-		{
-			switch (irInBuf[i].EventType)
-			{
+					if (InputEventsBuffer[i].Event.KeyEvent.bKeyDown) {
+						keyHandler(InputEventsBuffer[i].Event.KeyEvent);
+//						cout << InputEventsBuffer[i].Event.KeyEvent.uChar.AsciiChar;
+					}
+					break;
 
-			case MOUSE_EVENT: // mouse input
-
-				MouseEventProc(irInBuf[i].Event.MouseEvent);
-				break;
-
-			case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing
-				ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
+				case MOUSE_EVENT: // mouse input
+					if (InputEventsBuffer[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
+						// beim runter drücken das nicht zweimal geschrieben wird
+						if (InputEventsBuffer[i].Event.MouseEvent.dwEventFlags == 0) {
+							Button *button = buttonClickHandler(InputEventsBuffer[i].Event.MouseEvent);
+							if (button != nullptr) {
+								returnButton = button;
+								stopLoop = true;
+							}
+							Input *input = inputClickHandler(InputEventsBuffer[i].Event.MouseEvent);
+							Label *label = labelClickHandler(InputEventsBuffer[i].Event.MouseEvent);
+						}
+					}
+					// bei rechts klick
+					if (InputEventsBuffer[i].Event.MouseEvent.dwButtonState == DOUBLE_CLICK) {
+						stopLoop = true;
+					}
+					break;
+				default:
+					break;
+			}
+			if (stopLoop) {
 				break;
 			}
+		}
+		if (stopLoop) {
+			break;
 		}
 	}
 
 	// Restore input mode on exit.
+	SetConsoleMode(stdInputHandle, oldConsoleMode);
 
-	SetConsoleMode(hStdin, fdwSaveOldMode);
-
-	return 0;
+	return returnButton;
 }
 
-
-
-VOID MouseEventProc(MOUSE_EVENT_RECORD mer)
-{
-
-
-	switch (mer.dwEventFlags)
-	{
-	case 0:
-		if (mer.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
-		{
-
-			clearConsole();
-
-			printf("left button press \n");
-			std::cout << "X: " << mer.dwMousePosition.X << " \n";
-			std::cout << "Y: " << mer.dwMousePosition.Y << " \n";
-
-		}
-		else if (mer.dwButtonState == RIGHTMOST_BUTTON_PRESSED)
-		{
-			clearConsole();
-			printf("right button press \n");
-
-			std::cout << "X: " << mer.dwMousePosition.X << " \n";
-			std::cout << "Y: " << mer.dwMousePosition.Y << " \n";
-		}
-		break;
-	case DOUBLE_CLICK:
-		clearConsole();
-
-		printf("double click\n");
-
-		std::cout << "X: " << mer.dwMousePosition.X << " \n";
-		std::cout << "Y: " << mer.dwMousePosition.Y << " \n";
-		break;
-	default:
-		break;
-	}
+void destroyGui() {
+	destroyButtons();
+	destroyInputs();
+	destroyLabels();
+	resetGuiColor();
+	system("cls");
 }
-
-VOID ResizeEventProc(WINDOW_BUFFER_SIZE_RECORD wbsr)
-{
-	printf("Resize event\n");
-	printf("Console screen buffer is %d columns by %d rows.\n", wbsr.dwSize.X, wbsr.dwSize.Y);
-}
-*/

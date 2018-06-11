@@ -1,21 +1,16 @@
 //
-// Created by Donato Wolfisberg on 20.11.2017.
+// Created by Donato Wolfisberg on 13.12.2017.
 //
 
-#ifndef OWENATOR_PERSON_H
-#define OWENATOR_PERSON_H
+#ifndef OWENATORV2_PERSON_H
+#define OWENATORV2_PERSON_H
 
-#include <string>
-#include "personNode.h"
-#include "../user/userNode.h"
+#include "../list/list.h"
+#include "../user/user.h"
+#include "personStruct.h"
 
 using namespace std;
 
+Person *addPerson(string surname, string lastName, User* user);
 
-
-Person* addPerson(User* user, string name, string lastName);
-
-void deletePerson(User* user, long int id);
-Person* getPerson(User* user, long int id);
-bool getNextPerson(User* user, Person** person, bool backwards = false);
-#endif //OWENATOR_PERSON_H
+#endif //OWENATORV2_PERSON_H

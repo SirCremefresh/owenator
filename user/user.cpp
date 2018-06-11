@@ -1,45 +1,53 @@
 //
-// Created by Donato Wolfisberg on 20.11.2017.
+// Created by Donato Wolfisberg on 13.12.2017.
 //
 
-#include <iostream>
 #include "user.h"
-#include "userNode.h"
-#include "../list/list.h"
+
+#include <utility>
+
+List<User>* userList = new List<User>;
+
+List<User> *getUserList() {
+	return userList;
+}
 
 
-using namespace std;
-
-User* head = nullptr;
-User* tail = nullptr;
-float userIdCounter = 0;
-
+void setUserList(List<User> *userListNew) {
+	if (userList != nullptr) {
+		delete userList;
+		userList = userListNew;
+	}
+}
 
 User* addUser(string username, string password) {
-    auto* user = new User();
-	user->username = username;
-	user->password = password;
-	user->id = userIdCounter++;
-
-    addNode(&user, &head, &tail);
-    return user;
+	auto* user = new User;
+	user->username = std::move(username);
+	user->password = std::move(password);
+	return addNode(user, userList)->value;
 }
 
-
-
-void deleteUser(long int id) {
-    delete deleteNode(id, &head, &tail);
+User *getUserWith(string username, string password) {
+	NodeWrapper<User>* userWrapper = nullptr;
+	User *user;
+	while (getNextNode(&userWrapper, userList)) {
+		user = userWrapper->value;
+		if (user->username == username && user->password == password) {
+			return user;
+		}
+	}
+	return nullptr;
 }
 
-
-bool getNextUser(User** user, bool backwards /*false*/) {
-    return getNextNode(user, head, tail, backwards);
+bool doesUsernameExist(string username) {
+	NodeWrapper<User>* userWrapper = nullptr;
+	User *user;
+	while (getNextNode(&userWrapper, userList)) {
+		user = userWrapper->value;
+		if (user->username == username) {
+			return true;
+		}
+	}
+	return false;
 }
-
-User *getUser(long int id) {
-    return getNode(id, head, tail);
-}
-
-
-
 

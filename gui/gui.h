@@ -1,19 +1,21 @@
 //
-// Created by daPros on 21.11.420.
+// Created by Donato Wolfisberg on 12.12.2017.
 //
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef GUIV2_GUI_H
+#define GUIV2_GUI_H
 
-#include <string>
-
-#include "button.h"
 
 using namespace std;
 
-void moveCursor(short x, short y);
-void addButton(Button* button);
-void setText(short x, short y, string text);
+#include "../list/list.h"
+#include "guiElement/guiElement.h"
+#include "cursor/cursor.h"
+#include "render/render.h"
+#include "color/color.h"
 
+Button *showGui();
 
-#endif //GUI_H
+void destroyGui();
+
+#endif //GUIV2_GUI_H
