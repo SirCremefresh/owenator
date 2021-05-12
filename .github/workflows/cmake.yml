@@ -27,6 +27,12 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
   
+    - name: 'dir'
+      run: dir
+    
+    - name: 'cd build && dir'
+      run: dir -directory -name -recurse 
+  
     - name: Download a Build Artifact
       uses: actions/download-artifact@v2.0.9
       id: download
