@@ -33,8 +33,7 @@ jobs:
     - name: 'cd build && dir'
       run: dir -directory -name -recurse 
   
-    - name: Download a Build Artifact
-      uses: actions/download-artifact@v2.0.9
+    - uses: actions/upload-artifact@v2
       id: download
       with:
         name: 'owenatorV2.exe'
