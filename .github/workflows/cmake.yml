@@ -26,6 +26,14 @@ jobs:
     - name: Build
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+  
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.0.9
+      id: download
+      with:
+        name: 'owenatorV2.exe'
+        path: 'D:\a\owenator\owenator\build\Release\owenatorV2.exe'
+        
+    - name: 'Echo download path'
+      run: echo ${{steps.download.outputs.download-path}}
 
-
-      
