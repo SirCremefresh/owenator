@@ -5,6 +5,7 @@
 #ifndef OWENATORV2_DEPTSTRUCT_H
 #define OWENATORV2_DEPTSTRUCT_H
 
+#include <string>
 #include "../list/list.h"
 
 using namespace std;
