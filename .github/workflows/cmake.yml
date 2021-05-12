@@ -27,18 +27,10 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
   
-    - name: 'dir'
-      run: dir
-    
-    - name: 'cd build && dir'
-      run: dir -directory -name -recurse 
-  
     - uses: actions/upload-artifact@v2
-      id: download
+      name: Upload
       with:
         name: 'owenatorV2.exe'
         path: 'build\Release\owenatorV2.exe'
-        
-    - name: 'Echo download path'
-      run: echo ${{steps.download.outputs.download-path}}
+
 
