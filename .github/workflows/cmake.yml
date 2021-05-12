@@ -38,7 +38,7 @@ jobs:
       id: download
       with:
         name: 'owenatorV2.exe'
-        path: 'build/Release/*.exe'
+        path: 'build\Release\owenatorV2.exe'
         
     - name: 'Echo download path'
       run: echo ${{steps.download.outputs.download-path}}
